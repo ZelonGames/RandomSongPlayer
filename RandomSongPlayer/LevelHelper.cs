@@ -16,6 +16,8 @@ namespace RandomSongPlayer
 
         internal static void StartLevel(IBeatmapLevel level, BeatmapCharacteristicSO characteristics, BeatmapDifficulty difficulty)
         {
+            FileLogHelper.Log("Starting level");
+
             MenuTransitionsHelperSO menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuTransitionsHelperSO>().FirstOrDefault();
             PlayerData playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().playerData;
 
@@ -49,23 +51,13 @@ namespace RandomSongPlayer
                 });
         }
 
-        internal static async void LoadBeatmapLevelAsync(IPreviewBeatmapLevel selectedLevel, Action<AdditionalContentModelSO.EntitlementStatus, bool, IBeatmapLevel> callback)
+        internal static async void LoadBeatmapLevelAsync(IPreviewBeatmapLevel selectedLevel, Action<bool, IBeatmapLevel> callback)
         {
             var token = new CancellationTokenSource();
 
-            var _contentModelSO = Resources.FindObjectsOfTypeAll<AdditionalContentModelSO>().FirstOrDefault();
             var _beatmapLevelsModel = Resources.FindObjectsOfTypeAll<BeatmapLevelsModelSO>().FirstOrDefault();
-
-            var entitlementStatus = await _contentModelSO.GetLevelEntitlementStatusAsync(selectedLevel.levelID, token.Token);
-
-            if (entitlementStatus == AdditionalContentModelSO.EntitlementStatus.Owned)
-            {
-                BeatmapLevelsModelSO.GetBeatmapLevelResult getBeatmapLevelResult = await _beatmapLevelsModel.GetBeatmapLevelAsync(selectedLevel.levelID, token.Token);
-
-                callback?.Invoke(entitlementStatus, !getBeatmapLevelResult.isError, getBeatmapLevelResult.beatmapLevel);
-            }
-            else
-                callback?.Invoke(entitlementStatus, false, null);
+            BeatmapLevelsModelSO.GetBeatmapLevelResult getBeatmapLevelResult = await _beatmapLevelsModel.GetBeatmapLevelAsync(selectedLevel.levelID, token.Token);
+            callback?.Invoke(!getBeatmapLevelResult.isError, getBeatmapLevelResult.beatmapLevel);
         }
 
         private static void UploadScore(IDifficultyBeatmap levelDifficulty, LevelCompletionResults results)
