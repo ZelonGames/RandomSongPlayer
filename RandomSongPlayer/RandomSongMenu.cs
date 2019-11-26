@@ -28,42 +28,65 @@ namespace RandomSongPlayer
 
     internal class RandomSongMenu : FlowCoordinator
     {
-        private MainViewController mainViewController;
-
         private MainFlowCoordinator mainFlowCoordinator = null;
+
+        private CustomPreviewBeatmapLevel beatmap;
+        private BeatmapDifficulty difficulty;
+        private IDifficultyBeatmap levelDifficulty;
+        private LevelCompletionResults levelCompletionResults;
+        private ResultsViewController resultsViewController;
+        private bool newHighScore = false;
 
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
-            if (!firstActivation || activationType != ActivationType.AddedToHierarchy)
-                return;
+            if (firstActivation)
+            {
+                resultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First();
+                resultsViewController.Init(levelCompletionResults, levelDifficulty, newHighScore);
 
-            title = "Random Song Player";
+                resultsViewController.continueButtonPressedEvent += OnContinueButtonPressed;
+                resultsViewController.restartButtonPressedEvent += OnRestartButtonPressed;
+            }
 
-            mainViewController = BeatSaberUI.CreateViewController<MainViewController>();
-            mainViewController.BackButtonClicked += Hide;
+            //var leaderboardViewController = Resources.FindObjectsOfTypeAll<LeaderboardViewController>().First();
 
-            var playerSettingsViewController = BeatSaberUI.CreateViewController<PlayerSettingsViewController>();
-
-            ProvideInitialViewControllers(mainViewController, null, null, null);
-            SetViewControllersToNavigationConctroller(mainViewController, new VRUIViewController[] { });
-
-            BeatSaberUI.CreateText(mainViewController.rectTransform, "hello world!", new Vector2(2, 2));            
+            if (activationType == ActivationType.AddedToHierarchy)
+                ProvideInitialViewControllers(resultsViewController, null, null);
         }
 
-        public void Show()
+        public void Show(CustomPreviewBeatmapLevel customPreviewBeatmapLevel, BeatmapDifficulty difficulty, IDifficultyBeatmap levelDifficulty, LevelCompletionResults results, bool newHighScore)
         {
+            this.beatmap = customPreviewBeatmapLevel;
+            this.difficulty = difficulty;
+            this.levelDifficulty = levelDifficulty;
+            this.levelCompletionResults = results;
+            this.newHighScore = newHighScore;
+
             mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
             mainFlowCoordinator.PresentFlowCoordinatorOrAskForTutorial(this);
         }
 
         public void Hide()
         {
+            resultsViewController.continueButtonPressedEvent -= OnContinueButtonPressed;
+            resultsViewController.restartButtonPressedEvent -= OnRestartButtonPressed;
+
             mainFlowCoordinator.InvokeMethod("DismissFlowCoordinator", new object[]
             {
                 this,
                 null,
                 false
             });
+        }
+
+        public void OnContinueButtonPressed(ResultsViewController resultsViewController)
+        {
+            Hide();
+        }
+
+        public void OnRestartButtonPressed(ResultsViewController resultsViewController)
+        {
+            LevelHelper.PlayLevel(beatmap, difficulty);
         }
     }
 }

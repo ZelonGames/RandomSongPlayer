@@ -11,12 +11,8 @@ using IPALogger = IPA.Logging.Logger;
 using CustomUI.MenuButton;
 using UnityEngine;
 using System.Linq;
-using CustomUI.BeatSaber;
-using CustomUI.Utilities;
-using UnityEngine.UI;
 using SongCore;
 using SongCore.Data;
-using System.Collections.Generic;
 
 namespace RandomSongPlayer
 {
@@ -32,8 +28,11 @@ namespace RandomSongPlayer
         {
             Logger.log = logger;
             configProvider = cfgProvider;
-                        
-            randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", BeatSaber.InstallPath + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack);
+
+            Texture2D texture = LoadPNG("RandomSongAssets/random-song-tourney-icon.png");
+            Sprite coverImage = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            
+            randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", BeatSaber.InstallPath + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, coverImage);
 
             config = cfgProvider.MakeLink<PluginConfig>((p, v) =>
             {
@@ -41,6 +40,21 @@ namespace RandomSongPlayer
                     p.Store(v.Value = new PluginConfig() { RegenerateConfig = false });
                 config = v;
             });
+        }
+
+        public static Texture2D LoadPNG(string filePath)
+        {
+            Texture2D tex = null;
+            byte[] fileData;
+
+            if (File.Exists(filePath))
+            {
+                fileData = File.ReadAllBytes(filePath);
+                tex = new Texture2D(2, 2);
+                
+                tex.LoadImage(fileData);
+            }
+            return tex;
         }
 
         public void OnApplicationStart()
@@ -65,7 +79,14 @@ namespace RandomSongPlayer
         }
 
         public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
-        {
+        {/*
+            var flowCoordinators = Resources.FindObjectsOfTypeAll<FlowCoordinator>();
+            
+            FileLogHelper.Log(prevScene.name);
+            foreach (var flowCoordinator in flowCoordinators)
+            {
+                FileLogHelper.Log(flowCoordinator.name);
+            }*/
         }
 
         public void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
@@ -87,8 +108,6 @@ namespace RandomSongPlayer
         {
             var mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
             RandomSongMenu randomSongMenu = mainFlowCoordinator.gameObject.AddComponent<RandomSongMenu>();
-
-            randomSongMenu.Show();
         }
 
         // this is just temporary ok!
@@ -101,39 +120,17 @@ namespace RandomSongPlayer
             Loader.OnLevelPacksRefreshed += OnLevelPacksRefreshed;
 
             path = Path.GetFullPath(path);
+            Logger.log.Info("Path: " + path);
 
-            Loader.Instance.RefreshSongs(false);
+            Loader.Instance.RefreshSongs(true);
         }
 
         private void OnLevelPacksRefreshed()
         {
-            Logger.log.Log(IPALogger.Level.Info, "Levels Refreshed");
-
-            CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];// Loader.CustomLevels.Last().Value;
+            CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
             var difficulty = (BeatmapDifficulty)Enum.Parse(typeof(BeatmapDifficulty), installedMap.standardLevelInfoSaveData.difficultyBeatmapSets.First().difficultyBeatmaps.Last().difficulty);
 
-            Logger.log.Log(IPALogger.Level.Info, installedMap == null ? "installed maps is null" : "installed map is not null");
-
-            try
-            {
-                Logger.log.Log(IPALogger.Level.Info, "Trying to load beatmap");
-
-                var customLevelLoader = Resources.FindObjectsOfTypeAll<CustomLevelLoaderSO>().FirstOrDefault();
-                customLevelLoader.LoadCustomBeatmapLevelAsync(installedMap, new CancellationToken());
-
-                LevelHelper.LoadBeatmapLevelAsync(installedMap, (success, beatmapLevel) =>
-                {
-                    Logger.log.Log(IPALogger.Level.Info, "Loading Beatmap level Success:" + success);
-                    if (success)
-                    {
-                        LevelHelper.StartLevel(beatmapLevel, installedMap.beatmapCharacteristics.First(), difficulty);
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Logger.log.Log(IPALogger.Level.Critical, ex);
-            }
+            LevelHelper.PlayLevel(installedMap, difficulty);
 
             Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
         }

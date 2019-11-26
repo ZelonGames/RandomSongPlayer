@@ -1,10 +1,13 @@
 ﻿{
   "$schema": "https://raw.githubusercontent.com/nike4613/ModSaber-MetadataFileSchema/master/Schema.json",
-  "author": "",
-  "description": "",
+  "author": "ZelonGames/DarkGrisen",
+  "description": "Downloads a random song from BeatSaver and plays it",
   "gameVersion": "0.12.2",
-  "id": null,
+  "id": "Random Song Player",
   "name": "RandomSongPlayer",
   "version": "0.0.1-alpha",
-  "features": []
+  "features": [],
+  "dependsOn": {
+    "SongCore": "^2.5.0"
+  }
 }
