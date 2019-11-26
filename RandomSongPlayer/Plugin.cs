@@ -13,6 +13,7 @@ using UnityEngine;
 using System.Linq;
 using SongCore;
 using SongCore.Data;
+using CustomUI.Utilities;
 
 namespace RandomSongPlayer
 {
@@ -29,9 +30,8 @@ namespace RandomSongPlayer
             Logger.log = logger;
             configProvider = cfgProvider;
 
-            Texture2D texture = LoadPNG("RandomSongAssets/random-song-tourney-icon.png");
-            Sprite coverImage = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-            
+            Sprite coverImage = UIUtilities.LoadSpriteFromResources("RandomSongPlayer.Assets.random-song-tourney-icon.png");// Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+
             randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", BeatSaber.InstallPath + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, coverImage);
 
             config = cfgProvider.MakeLink<PluginConfig>((p, v) =>
@@ -40,21 +40,6 @@ namespace RandomSongPlayer
                     p.Store(v.Value = new PluginConfig() { RegenerateConfig = false });
                 config = v;
             });
-        }
-
-        public static Texture2D LoadPNG(string filePath)
-        {
-            Texture2D tex = null;
-            byte[] fileData;
-
-            if (File.Exists(filePath))
-            {
-                fileData = File.ReadAllBytes(filePath);
-                tex = new Texture2D(2, 2);
-                
-                tex.LoadImage(fileData);
-            }
-            return tex;
         }
 
         public void OnApplicationStart()
@@ -68,25 +53,8 @@ namespace RandomSongPlayer
             Logger.log.Debug("OnApplicationQuit");
         }
 
-        public void OnFixedUpdate()
-        {
-
-        }
-
-        public void OnUpdate()
-        {
-
-        }
-
         public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
-        {/*
-            var flowCoordinators = Resources.FindObjectsOfTypeAll<FlowCoordinator>();
-            
-            FileLogHelper.Log(prevScene.name);
-            foreach (var flowCoordinator in flowCoordinators)
-            {
-                FileLogHelper.Log(flowCoordinator.name);
-            }*/
+        {
         }
 
         public void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
@@ -138,6 +106,14 @@ namespace RandomSongPlayer
         public void OnSceneUnloaded(Scene scene)
         {
 
+        }
+
+        public void OnUpdate()
+        {
+        }
+
+        public void OnFixedUpdate()
+        {
         }
     }
 }
