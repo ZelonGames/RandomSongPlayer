@@ -8,6 +8,7 @@
   "version": "0.0.1-alpha",
   "features": [],
   "dependsOn": {
-    "SongCore": "^2.5.0"
+    "SongCore": "^2.5.0",
+    "CustomUI": "^1.7.1"
   }
 }
