@@ -45,7 +45,6 @@ namespace RandomSongPlayer
         public void OnApplicationStart()
         {
             Logger.log.Debug("OnApplicationStart");
-            Setup.InstantiateData();
         }
 
         public void OnApplicationQuit()

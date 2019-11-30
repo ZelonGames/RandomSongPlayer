@@ -74,16 +74,6 @@ namespace RandomSongPlayer
             {
                 var responseString = await Plugin.client.GetStringAsync("https://beatsaver.com/api/maps/detail/" + randomKey);
 
-                if (File.Exists(Setup.MapDataFileName))
-                {
-                    using (var wr = new StreamWriter(Setup.MapDataFileName))
-                    {
-                        wr.WriteLine(responseString);
-                    }
-                }
-                else
-                    Console.WriteLine("The file " + Setup.MapDataFileName + " doesn't exist!");
-
                 mapData = JsonConvert.DeserializeObject<MapData>(responseString);
 
                 #region NPS Filter

@@ -16,7 +16,6 @@ namespace RandomSongPlayer
         {
             string mapDirectoryName = GetMapDirectoryName(mapData);
             path = mapDirectoryName;
-
             if (Directory.Exists(mapDirectoryName))
                 return;
 

@@ -23,53 +23,7 @@ namespace RandomSongPlayer
                     Logger.log.Log(IPALogger.Level.Info, "Loading Beatmap level Success:" + success);
                     if (success)
                     {
-                        Logger.log.Info("Starting level");
-
-                        MenuTransitionsHelperSO menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuTransitionsHelperSO>().FirstOrDefault();
-                        PlayerData playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().playerData;
-
-                        var gamePlayModifiers = new GameplayModifiers();
-                        gamePlayModifiers.IsWithoutModifiers();
-
-                        IBeatmapLevel level = beatmapLevel;
-                        BeatmapCharacteristicSO characteristics = beatmap.beatmapCharacteristics.First();
-                        IDifficultyBeatmap levelDifficulty = BeatmapLevelDataExtensions.GetDifficultyBeatmap(level.beatmapLevelData, characteristics, difficulty);
-                        menuSceneSetupData.StartStandardLevel(levelDifficulty,
-                            playerSettings.overrideEnvironmentSettings.overrideEnvironments ? playerSettings.overrideEnvironmentSettings : null,
-                            playerSettings.colorSchemesSettings.overrideDefaultColors ? playerSettings.colorSchemesSettings.GetSelectedColorScheme() : null,
-                            gamePlayModifiers,
-                            playerSettings.playerSpecificSettings,
-                            null, "Exit", playerSettings.playerSpecificSettings.disableSFX, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
-                            {
-                                bool newHighScore = false;
-
-                                var mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
-                                RandomSongMenu randomSongMenu = mainFlowCoordinator.gameObject.AddComponent<RandomSongMenu>();
-
-                                if (results.levelEndAction == LevelCompletionResults.LevelEndAction.Restart)
-                                {
-                                    Logger.log.Info("Restarting level");
-                                    PlayLevel(beatmap, difficulty);
-                                    return;
-                                }
-
-                                switch (results.levelEndStateType)
-                                {
-                                    case LevelCompletionResults.LevelEndStateType.None:
-                                        break;
-                                    case LevelCompletionResults.LevelEndStateType.Cleared:
-                                        UploadScore(levelDifficulty, results, out newHighScore);
-                                        randomSongMenu.Show(beatmap, difficulty, levelDifficulty, results, newHighScore);
-                                        break;
-                                    case LevelCompletionResults.LevelEndStateType.Failed:
-                                        randomSongMenu.Show(beatmap, difficulty, levelDifficulty, results, newHighScore);
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-
-                            });
+                        StartLevel(beatmapLevel, beatmap, difficulty);
                     }
 
                 });
@@ -78,6 +32,57 @@ namespace RandomSongPlayer
             {
                 Logger.log.Log(IPALogger.Level.Critical, ex);
             }
+        }
+
+        private static void StartLevel(IBeatmapLevel beatmapLevel, CustomPreviewBeatmapLevel beatmap, BeatmapDifficulty difficulty)
+        {
+            Logger.log.Info("Starting level");
+
+            MenuTransitionsHelperSO menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuTransitionsHelperSO>().FirstOrDefault();
+            PlayerData playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().playerData;
+
+            var gamePlayModifiers = new GameplayModifiers();
+            gamePlayModifiers.IsWithoutModifiers();
+
+            IBeatmapLevel level = beatmapLevel;
+            BeatmapCharacteristicSO characteristics = beatmap.beatmapCharacteristics.First();
+            IDifficultyBeatmap levelDifficulty = BeatmapLevelDataExtensions.GetDifficultyBeatmap(level.beatmapLevelData, characteristics, difficulty);
+            menuSceneSetupData.StartStandardLevel(levelDifficulty,
+                playerSettings.overrideEnvironmentSettings.overrideEnvironments ? playerSettings.overrideEnvironmentSettings : null,
+                playerSettings.colorSchemesSettings.overrideDefaultColors ? playerSettings.colorSchemesSettings.GetSelectedColorScheme() : null,
+                gamePlayModifiers,
+                playerSettings.playerSpecificSettings,
+                null, "Exit", playerSettings.playerSpecificSettings.disableSFX, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
+                {
+                    bool newHighScore = false;
+
+                    var mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
+                    RandomSongMenu randomSongMenu = mainFlowCoordinator.gameObject.AddComponent<RandomSongMenu>();
+
+                    if (results.levelEndAction == LevelCompletionResults.LevelEndAction.Restart)
+                    {
+                        Logger.log.Info("Restarting level");
+                        PlayLevel(beatmap, difficulty);
+                        return;
+                    }
+
+                    switch (results.levelEndStateType)
+                    {
+                        case LevelCompletionResults.LevelEndStateType.None:
+                            break;
+                        case LevelCompletionResults.LevelEndStateType.Cleared:
+                            UploadScore(levelDifficulty, results, out newHighScore);
+                            randomSongMenu.Show(beatmap, difficulty, levelDifficulty, results, newHighScore);
+                            break;
+                        case LevelCompletionResults.LevelEndStateType.Failed:
+                            randomSongMenu.Show(beatmap, difficulty, levelDifficulty, results, newHighScore);
+                            break;
+                        default:
+                            break;
+                    }
+
+
+                });
         }
 
         private static async void LoadBeatmapLevelAsync(IPreviewBeatmapLevel selectedLevel, Action<bool, IBeatmapLevel> callback)

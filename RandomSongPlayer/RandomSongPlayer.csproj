@@ -94,7 +94,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileLogHelper.cs" />
     <Compile Include="Filter\FilterData.cs" />
     <Compile Include="Filter\FilterHelper.cs" />
     <Compile Include="Filter\RandomKeyFilter.cs" />
