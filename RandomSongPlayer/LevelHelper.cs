@@ -1,5 +1,4 @@
-﻿using CustomUI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
+using Newtonsoft.Json;
+using IPA.Utilities;
+using BeatSaberMarkupLanguage;
 
 namespace RandomSongPlayer
 {
@@ -17,7 +19,6 @@ namespace RandomSongPlayer
 
             try
             {
-                Console.WriteLine("aaa");
                 LoadBeatmapLevelAsync(beatmap, (success, beatmapLevel) =>
                 {
                     Logger.log.Log(IPALogger.Level.Info, "Loading Beatmap level Success:" + success);
@@ -38,31 +39,31 @@ namespace RandomSongPlayer
         {
             Logger.log.Info("Starting level");
 
-            MenuTransitionsHelperSO menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuTransitionsHelperSO>().FirstOrDefault();
+            MenuTransitionsHelper menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuTransitionsHelper>().FirstOrDefault();
             PlayerData playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().playerData;
 
             var gamePlayModifiers = new GameplayModifiers();
             gamePlayModifiers.IsWithoutModifiers();
 
             IBeatmapLevel level = beatmapLevel;
-            BeatmapCharacteristicSO characteristics = beatmap.beatmapCharacteristics.First();
+            BeatmapCharacteristicSO characteristics = beatmap.previewDifficultyBeatmapSets[0].beatmapCharacteristic;
             IDifficultyBeatmap levelDifficulty = BeatmapLevelDataExtensions.GetDifficultyBeatmap(level.beatmapLevelData, characteristics, difficulty);
             menuSceneSetupData.StartStandardLevel(levelDifficulty,
                 playerSettings.overrideEnvironmentSettings.overrideEnvironments ? playerSettings.overrideEnvironmentSettings : null,
                 playerSettings.colorSchemesSettings.overrideDefaultColors ? playerSettings.colorSchemesSettings.GetSelectedColorScheme() : null,
                 gamePlayModifiers,
                 playerSettings.playerSpecificSettings,
-                null, "Exit", playerSettings.playerSpecificSettings.disableSFX, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
+                null, "Exit", playerSettings.playerSpecificSettings.sfxVolume > 0, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
                 {
                     bool newHighScore = false;
 
                     var mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
-                    RandomSongMenu randomSongMenu = mainFlowCoordinator.gameObject.AddComponent<RandomSongMenu>();
+                    RandomSongMenu randomSongMenu = BeatSaberUI.CreateFlowCoordinator<RandomSongMenu>();
 
                     if (results.levelEndAction == LevelCompletionResults.LevelEndAction.Restart)
                     {
                         Logger.log.Info("Restarting level");
-                        PlayLevel(beatmap, difficulty);
+                        PlayLevel(JsonConvert.DeserializeObject<CustomPreviewBeatmapLevel>(JsonConvert.SerializeObject(beatmap)), JsonConvert.DeserializeObject<BeatmapDifficulty>(JsonConvert.SerializeObject(difficulty)));
                         return;
                     }
 
@@ -73,15 +74,15 @@ namespace RandomSongPlayer
                         case LevelCompletionResults.LevelEndStateType.Cleared:
                             UploadScore(levelDifficulty, results, out newHighScore);
                             randomSongMenu.Show(beatmap, difficulty, levelDifficulty, results, newHighScore);
+                            Logger.log.Info("Showing menu");
                             break;
                         case LevelCompletionResults.LevelEndStateType.Failed:
+                            Logger.log.Info("Showing menu");
                             randomSongMenu.Show(beatmap, difficulty, levelDifficulty, results, newHighScore);
                             break;
                         default:
                             break;
                     }
-
-
                 });
         }
 
@@ -89,7 +90,7 @@ namespace RandomSongPlayer
         {
             var token = new CancellationTokenSource();
 
-            var _beatmapLevelsModel = Resources.FindObjectsOfTypeAll<BeatmapLevelsModelSO>().FirstOrDefault();
+            var _beatmapLevelsModel = Resources.FindObjectsOfTypeAll<BeatmapLevelsModel>().FirstOrDefault();
             Logger.log.Info("Level ID: " + selectedLevel.levelID);
 
             var _loadedPreviewBeatmapLevels = _beatmapLevelsModel.GetPrivateField<Dictionary<string, IPreviewBeatmapLevel>>("_loadedPreviewBeatmapLevels");
@@ -98,11 +99,9 @@ namespace RandomSongPlayer
             if (!containsKey)
                 _loadedPreviewBeatmapLevels.Add(selectedLevel.levelID, selectedLevel);
 
-
-
             Logger.log.Info("Has key: " + containsKey);
 
-            BeatmapLevelsModelSO.GetBeatmapLevelResult getBeatmapLevelResult = await _beatmapLevelsModel.GetBeatmapLevelAsync(selectedLevel.levelID, token.Token);
+            BeatmapLevelsModel.GetBeatmapLevelResult getBeatmapLevelResult = await _beatmapLevelsModel.GetBeatmapLevelAsync(selectedLevel.levelID, token.Token);
 
             callback?.Invoke(!getBeatmapLevelResult.isError, getBeatmapLevelResult.beatmapLevel);
         }
@@ -123,7 +122,7 @@ namespace RandomSongPlayer
             newHighScore = playerLevelStatsData.highScore > prevHighScore;
 
             var platFormLeaderBoardsModel = freePlayCoordinator.GetPrivateField<PlatformLeaderboardsModel>("_platformLeaderboardsModel");
-            platFormLeaderBoardsModel.AddScoreFromComletionResults(levelDifficulty, levelCompletionResults);
+            platFormLeaderBoardsModel.UploadScore(levelDifficulty, results.rawScore, results.modifiedScore, results.fullCombo, results.goodCutsCount, results.badCutsCount, results.missedCount, results.maxCombo, results.gameplayModifiers);//AddScoreFromComletionResults(levelDifficulty, levelCompletionResults);
         }
     }
 }

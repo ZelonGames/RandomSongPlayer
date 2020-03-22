@@ -8,12 +8,11 @@ using IPA.Config;
 using IPA.Utilities;
 using UnityEngine.SceneManagement;
 using IPALogger = IPA.Logging.Logger;
-using CustomUI.MenuButton;
 using UnityEngine;
 using System.Linq;
 using SongCore;
 using SongCore.Data;
-using CustomUI.Utilities;
+using BeatSaberMarkupLanguage.MenuButtons;
 
 namespace RandomSongPlayer
 {
@@ -30,10 +29,9 @@ namespace RandomSongPlayer
             Logger.log = logger;
             configProvider = cfgProvider;
 
-            Sprite coverImage = UIUtilities.LoadSpriteFromResources("RandomSongPlayer.Assets.random-song-tourney-icon.png");// Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            //Sprite coverImage = LoadSpriteFromResources("RandomSongPlayer.Assets.random-song-tourney-icon.png");// Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
 
-            randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", BeatSaber.InstallPath + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, coverImage);
-
+            randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", BeatSaber.InstallPath + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, null);
             config = cfgProvider.MakeLink<PluginConfig>((p, v) =>
             {
                 if (v.Value == null || v.Value.RegenerateConfig)
@@ -62,7 +60,8 @@ namespace RandomSongPlayer
             {
                 if (scene.name == "MenuCore")
                 {
-                    MenuButtonUI.AddButton("Random Song Player", "Download a random song from Beat Saver and play it", () => { PlayRandomSongAsync(); });
+                    MenuButton menuButton = new MenuButton("Random Song Player", "Download a random song from Beat Saver and play it", () => { PlayRandomSongAsync(); });
+                    MenuButtons.instance.RegisterButton(menuButton);
                 }
             }
             catch (Exception e)

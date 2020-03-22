@@ -1,31 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CustomUI.BeatSaber;
-using CustomUI.Utilities;
+using IPA.Utilities;
 using UnityEngine;
-using UnityEngine.UI;
-using CustomUI.UIElements;
-using VRUI;
+using HMUI;
+using Newtonsoft.Json;
+using BeatSaberMarkupLanguage;
 
 namespace RandomSongPlayer
 {
-    internal class MainViewController : VRUINavigationController
-    {
-        public event Action BackButtonClicked;
-
-        private Button backButton;
-
-        protected override void DidActivate(bool firstActivation, ActivationType activationType)
-        {
-            if (firstActivation && activationType == ActivationType.AddedToHierarchy)
-                backButton = BeatSaberUI.CreateBackButton(rectTransform, BackButtonClicked.Invoke);
-        }
-    }
-
     internal class RandomSongMenu : FlowCoordinator
     {
         private MainFlowCoordinator mainFlowCoordinator = null;
@@ -41,16 +24,14 @@ namespace RandomSongPlayer
         {
             if (firstActivation)
             {
-                resultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First();
-                resultsViewController.Init(levelCompletionResults, levelDifficulty, newHighScore);
+                resultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First(); //
+                resultsViewController.Init(levelCompletionResults, levelDifficulty, false, newHighScore);
 
                 resultsViewController.continueButtonPressedEvent += OnContinueButtonPressed;
                 resultsViewController.restartButtonPressedEvent += OnRestartButtonPressed;
             }
 
-            //var leaderboardViewController = Resources.FindObjectsOfTypeAll<LeaderboardViewController>().First();
-
-            if (activationType == ActivationType.AddedToHierarchy)
+            if (activationType == ActivationType.AddedToHierarchy && resultsViewController != null)
                 ProvideInitialViewControllers(resultsViewController, null, null);
         }
 
@@ -63,7 +44,7 @@ namespace RandomSongPlayer
             this.newHighScore = newHighScore;
 
             mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
-            mainFlowCoordinator.PresentFlowCoordinatorOrAskForTutorial(this);
+            BeatSaberUI.PresentFlowCoordinator(mainFlowCoordinator, this);
         }
 
         public void Hide()
@@ -71,12 +52,8 @@ namespace RandomSongPlayer
             resultsViewController.continueButtonPressedEvent -= OnContinueButtonPressed;
             resultsViewController.restartButtonPressedEvent -= OnRestartButtonPressed;
 
-            mainFlowCoordinator.InvokeMethod("DismissFlowCoordinator", new object[]
-            {
-                this,
-                null,
-                false
-            });
+            mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
+            BeatSaberUI.DismissFlowCoordinator(mainFlowCoordinator, this);
         }
 
         public void OnContinueButtonPressed(ResultsViewController resultsViewController)
