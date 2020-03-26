@@ -24,8 +24,15 @@ namespace RandomSongPlayer
         internal static IConfigProvider configProvider;
         internal static SeperateSongFolder randomSongsFolder;
 
+        public static Plugin instance;
+        public static IAnnotatedBeatmapLevelCollection Playlist {
+            get { return randomSongsFolder.LevelPack; }
+        }
+
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
+            instance = this;
+
             Logger.log = logger;
             configProvider = cfgProvider;
             // TODOKETE
@@ -97,9 +104,14 @@ namespace RandomSongPlayer
             }
         }
 
+
+
+        public delegate void RSPDownloadedCallback(string randomSongId);
         // this is just temporary ok!
         string path;
-        public async Task DownloadRandomSongAsync()
+        RSPDownloadedCallback downloadCallback;
+        /** If the callback is null, call the callback with the randomSongId, otherwise select the newly downloaded song */
+        public async Task DownloadRandomSongAsync(RSPDownloadedCallback callback = null)
         {
             await RandomSongGenerator.GenerateRandomKey(null);
             MapInstaller.InstallMap(RandomSongGenerator.mapData, out path);
@@ -109,12 +121,22 @@ namespace RandomSongPlayer
             path = Path.GetFullPath(path);
             Logger.log.Info("Path: " + path);
 
+            downloadCallback = callback;
+
             Loader.Instance.RefreshSongs(false);
         }
 
         private void OnLevelPacksRefreshed()
         {
-            CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];            
+            CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
+            Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
+
+            if (downloadCallback != null)
+            {
+                downloadCallback(installedMap.levelID);
+                return;
+            }
+
             int installedLevelIndex = Array.FindIndex(randomSongsFolder.LevelPack.beatmapLevelCollection.beatmapLevels, x => (x.levelID == installedMap.levelID));
 
             LevelCollectionTableView levelCollectionTable = Resources.FindObjectsOfTypeAll<LevelCollectionTableView>().First();
@@ -122,7 +144,6 @@ namespace RandomSongPlayer
             tableView.ScrollToCellWithIdx(installedLevelIndex+1, HMUI.TableViewScroller.ScrollPositionType.Center, true);
             tableView.SelectCellWithIdx(installedLevelIndex + 1, true);
                         
-            Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
         }
 
         public void OnSceneUnloaded(Scene scene)
