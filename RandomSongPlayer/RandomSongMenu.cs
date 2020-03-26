@@ -24,15 +24,15 @@ namespace RandomSongPlayer
         {
             if (firstActivation)
             {
-                resultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First(); //
+                resultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First();
                 resultsViewController.Init(levelCompletionResults, levelDifficulty, false, newHighScore);
 
                 resultsViewController.continueButtonPressedEvent += OnContinueButtonPressed;
                 resultsViewController.restartButtonPressedEvent += OnRestartButtonPressed;
-            }
 
-            if (activationType == ActivationType.AddedToHierarchy && resultsViewController != null)
-                ProvideInitialViewControllers(resultsViewController, null, null);
+                if (activationType == ActivationType.AddedToHierarchy && resultsViewController != null)
+                    ProvideInitialViewControllers(resultsViewController, null, null);
+            }
         }
 
         public void Show(CustomPreviewBeatmapLevel customPreviewBeatmapLevel, BeatmapDifficulty difficulty, IDifficultyBeatmap levelDifficulty, LevelCompletionResults results, bool newHighScore)
@@ -63,6 +63,7 @@ namespace RandomSongPlayer
 
         public void OnRestartButtonPressed(ResultsViewController resultsViewController)
         {
+            Hide();
             LevelHelper.PlayLevel(beatmap, difficulty);
         }
     }

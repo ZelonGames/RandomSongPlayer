@@ -53,7 +53,7 @@ namespace RandomSongPlayer
                 playerSettings.colorSchemesSettings.overrideDefaultColors ? playerSettings.colorSchemesSettings.GetSelectedColorScheme() : null,
                 gamePlayModifiers,
                 playerSettings.playerSpecificSettings,
-                null, "Exit", playerSettings.playerSpecificSettings.sfxVolume > 0, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
+                playerSettings.practiceSettings, "Exit", playerSettings.playerSpecificSettings.sfxVolume > 0, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
                 {
                     bool newHighScore = false;
 
@@ -63,7 +63,6 @@ namespace RandomSongPlayer
                     if (results.levelEndAction == LevelCompletionResults.LevelEndAction.Restart)
                     {
                         Logger.log.Info("Restarting level");
-                        PlayLevel(JsonConvert.DeserializeObject<CustomPreviewBeatmapLevel>(JsonConvert.SerializeObject(beatmap)), JsonConvert.DeserializeObject<BeatmapDifficulty>(JsonConvert.SerializeObject(difficulty)));
                         return;
                     }
 
