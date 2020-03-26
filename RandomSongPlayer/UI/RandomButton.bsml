@@ -1,0 +1,3 @@
+﻿<bg>
+  <button id='random-button' text='RSP' anchor-pos-x='-68.5' anchor-pos-y='-5.5' pref-width='22' pref-height='6' on-click='button-click'></button>
+</bg>

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
 using Newtonsoft.Json;
-using IPA.Utilities;
+using BS_Utils.Utilities;
 using BeatSaberMarkupLanguage;
 
 namespace RandomSongPlayer
@@ -40,7 +40,7 @@ namespace RandomSongPlayer
             Logger.log.Info("Starting level");
 
             MenuTransitionsHelper menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuTransitionsHelper>().FirstOrDefault();
-            PlayerData playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().playerData;
+            PlayerData playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModel>().FirstOrDefault().playerData;
 
             var gamePlayModifiers = new GameplayModifiers();
             gamePlayModifiers.IsWithoutModifiers();
@@ -109,7 +109,7 @@ namespace RandomSongPlayer
         private static void UploadScore(IDifficultyBeatmap levelDifficulty, LevelCompletionResults results, out bool newHighScore)
         {
             var freePlayCoordinator = Resources.FindObjectsOfTypeAll<SoloFreePlayFlowCoordinator>().First();
-            var dataModel = freePlayCoordinator.GetPrivateField<PlayerDataModelSO>("_playerDataModel");
+            var dataModel = freePlayCoordinator.GetPrivateField<PlayerDataModel>("_playerDataModel");
 
             PlayerData currentLocalPlayer = dataModel.playerData;
             PlayerLevelStatsData playerLevelStatsData = currentLocalPlayer.GetPlayerLevelStatsData(levelDifficulty.level.levelID, levelDifficulty.difficulty, levelDifficulty.parentDifficultyBeatmapSet.beatmapCharacteristic);
