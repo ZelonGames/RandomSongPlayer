@@ -41,7 +41,7 @@ namespace RandomSongPlayer.UI
         async internal void RandomLevelButtonClick()
         {
             button.interactable = false;
-            await plugin.DownloadRandomSongAsync();
+            await plugin.SelectRandomSongAsync();
             button.interactable = true;
         }
     }

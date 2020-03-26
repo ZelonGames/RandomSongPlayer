@@ -1,7 +1,12 @@
-﻿namespace RandomSongPlayer
+﻿using System;
+
+namespace RandomSongPlayer
 {
-    internal class PluginConfig
+    public class PluginConfig
     {
-        public bool RegenerateConfig = true;
+        /// <summary>
+        /// Call this to save to disk
+        /// </summary>
+        public virtual void Changed() { }
     }
 }

@@ -4,8 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 using IPA;
+using IPA.Loader;
 using IPA.Config;
-using IPA.Utilities;
+using IPA.Config.Stores;
+using BS_Utils.Utilities;
 using UnityEngine.SceneManagement;
 using IPALogger = IPA.Logging.Logger;
 using UnityEngine;
@@ -13,41 +15,39 @@ using System.Linq;
 using SongCore;
 using SongCore.Data;
 using RandomSongPlayer.UI;
+using BeatSaberMarkupLanguage.MenuButtons;
+using BS_Utils;
 
 namespace RandomSongPlayer
 {
-    public class Plugin : IBeatSaberPlugin
+    [Plugin(RuntimeOptions.SingleStartInit)]
+    public class Plugin
     {
         internal static System.Random rnd = new System.Random();
         internal static HttpClient client = new HttpClient();
-        internal static Ref<PluginConfig> config;
-        internal static IConfigProvider configProvider;
+        internal static PluginConfig config;
         internal static SeperateSongFolder randomSongsFolder;
-
         public static Plugin instance;
+
         public static IAnnotatedBeatmapLevelCollection Playlist {
             get { return randomSongsFolder.LevelPack; }
         }
 
-        public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
+        [Init]
+        public void Init(IPALogger logger, IPA.Config.Config cfgProvider, PluginMetadata pluginMetadata)
         {
             instance = this;
 
             Logger.log = logger;
-            configProvider = cfgProvider;
-            // TODOKETE
-            Sprite coverImage = SongCore.Utilities.Utils.LoadSpriteFromResources("RandomSongPlayer.Assets.random-song-tourney-icon.png");
 
-            randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", BeatSaber.InstallPath + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, coverImage);
-            
-            config = cfgProvider.MakeLink<PluginConfig>((p, v) =>
-            {
-                if (v.Value == null || v.Value.RegenerateConfig)
-                    p.Store(v.Value = new PluginConfig() { RegenerateConfig = false });
-                config = v;
-            });
+            Sprite coverImage = SongCore.Utilities.Utils.LoadSpriteFromResources("RandomSongPlayer.Assets.rst-logo.png");
+
+            randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", Environment.CurrentDirectory + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, coverImage);
+
+            config = cfgProvider.Generated<PluginConfig>();            
         }
 
+        [OnStart]
         public void OnApplicationStart()
         {
             Logger.log.Info("OnApplicationStart");
@@ -76,87 +76,84 @@ namespace RandomSongPlayer
             levelFiltering.didSelectAnnotatedBeatmapLevelCollectionEvent -= _levelFilteringNavController_didSelectPackEvent;
             levelFiltering.didSelectAnnotatedBeatmapLevelCollectionEvent += _levelFilteringNavController_didSelectPackEvent;
             RandomButtonUI.instance.Setup(this);
+
+            try
+            {
+                MenuButton menuButton = new MenuButton("Random Song Player", "Download a random song from Beat Saver and play it", () => { PlayRandomSongAsync(); });
+                MenuButtons.instance.RegisterButton(menuButton);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.Message);
+            }
         }
 
+        [OnExit]
         public void OnApplicationQuit()
         {
             Logger.log.Debug("OnApplicationQuit");
         }
-
-        public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
-        {
-        }
-
+                
         public void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            try
-            {
-                if (scene.name == "MenuCore")
-                {
-                    // BeatSaberMarkupLanguage.MenuButtons.MenuButton menuButton = 
-                    // TODOKETE
-                    // MenuButtonUI.AddButton("Random Song Player", "Download a random song from Beat Saver and play it", () => { PlayRandomSongAsync(); });
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error:");
-            }
         }
 
 
 
-        public delegate void RSPDownloadedCallback(string randomSongId);
-        // this is just temporary ok!
-        string path;
-        RSPDownloadedCallback downloadCallback;
+        public delegate void RSPDownloadedCallback(CustomPreviewBeatmapLevel chosenSong);
+
         /** If the callback is null, call the callback with the randomSongId, otherwise select the newly downloaded song */
-        public async Task DownloadRandomSongAsync(RSPDownloadedCallback callback = null)
+        public async Task DownloadRandomSongAsync(RSPDownloadedCallback callback)
         {
             await RandomSongGenerator.GenerateRandomKey(null);
+            String path;
             MapInstaller.InstallMap(RandomSongGenerator.mapData, out path);
 
-            Loader.OnLevelPacksRefreshed += OnLevelPacksRefreshed;
 
             path = Path.GetFullPath(path);
-            Logger.log.Info("Path: " + path);
+            Logger.log.Info("Chosen Random Song: " + path);
 
-            downloadCallback = callback;
-
+            // Have fun with this.
+            Action OnLevelPacksRefreshed = null;
+            OnLevelPacksRefreshed = () =>
+            {
+                Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
+                CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
+                callback(installedMap);
+            };
+            Loader.OnLevelPacksRefreshed += OnLevelPacksRefreshed;
             Loader.Instance.RefreshSongs(false);
         }
 
-        private void OnLevelPacksRefreshed()
+        public async Task SelectRandomSongAsync()
         {
-            CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
-            Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
+            await DownloadRandomSongAsync(OnLevelPacksRefreshedSelect);
+        }
 
-            if (downloadCallback != null)
-            {
-                downloadCallback(installedMap.levelID);
-                return;
-            }
+        public async Task PlayRandomSongAsync()
+        {
+            await DownloadRandomSongAsync(OnLevelPacksRefreshedPlay);
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="installedMap"></param>
+        private void OnLevelPacksRefreshedSelect(CustomPreviewBeatmapLevel installedMap)
+        {
             int installedLevelIndex = Array.FindIndex(randomSongsFolder.LevelPack.beatmapLevelCollection.beatmapLevels, x => (x.levelID == installedMap.levelID));
 
             LevelCollectionTableView levelCollectionTable = Resources.FindObjectsOfTypeAll<LevelCollectionTableView>().First();
             var tableView = levelCollectionTable.GetPrivateField<HMUI.TableView>("_tableView");
-            tableView.ScrollToCellWithIdx(installedLevelIndex+1, HMUI.TableViewScroller.ScrollPositionType.Center, true);
+            tableView.ScrollToCellWithIdx(installedLevelIndex + 1, HMUI.TableViewScroller.ScrollPositionType.Center, true);
             tableView.SelectCellWithIdx(installedLevelIndex + 1, true);
-                        
         }
 
-        public void OnSceneUnloaded(Scene scene)
+        private void OnLevelPacksRefreshedPlay(CustomPreviewBeatmapLevel installedMap)
         {
+            var difficulty = (BeatmapDifficulty)Enum.Parse(typeof(BeatmapDifficulty), installedMap.standardLevelInfoSaveData.difficultyBeatmapSets.First().difficultyBeatmaps.Last().difficulty);
 
-        }
-
-        public void OnUpdate()
-        {
-        }
-
-        public void OnFixedUpdate()
-        {
+            LevelHelper.PlayLevel(installedMap, difficulty);
         }
     }
 }

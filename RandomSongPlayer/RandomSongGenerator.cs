@@ -22,7 +22,7 @@ namespace RandomSongPlayer
             // Define tries to find a map
             // TODO: Maybe make this setting not be hardcoded
             int tries = 0;
-            int maxTries = 10;
+            int maxTries = 100;
             mapData = null;
             string randomKey = null;
 
