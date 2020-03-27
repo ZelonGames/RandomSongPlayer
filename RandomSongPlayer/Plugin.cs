@@ -40,7 +40,7 @@ namespace RandomSongPlayer
 
             Logger.log = logger;
 
-            Sprite coverImage = SongCore.Utilities.Utils.LoadSpriteFromResources("RandomSongPlayer.Assets.rst-logo.png");
+            Sprite coverImage = SongCore.Utilities.Utils.LoadSpriteFromResources("RandomSongPlayer.Assets.new-rst-logo.png");
 
             randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", Environment.CurrentDirectory + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, coverImage);
 
@@ -54,9 +54,9 @@ namespace RandomSongPlayer
             BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh += BSEvents_menuSceneLoadedFresh;
         }
 
-        private void _levelFilteringNavController_didSelectPackEvent(LevelFilteringNavigationController arg1, IAnnotatedBeatmapLevelCollection arg2, GameObject arg3, BeatmapCharacteristicSO arg4)
+        private void _levelFilteringNavController_didSelectPackEvent(LevelFilteringNavigationController levelFilteringNavigationController, IAnnotatedBeatmapLevelCollection iAnnotatedBeatmapLevelCollection, GameObject gameObject, BeatmapCharacteristicSO beatmapCharacteristicSO)
         {
-            IBeatmapLevelPack levelPack = arg2 as IBeatmapLevelPack;
+            IBeatmapLevelPack levelPack = iAnnotatedBeatmapLevelCollection as IBeatmapLevelPack;
             if (levelPack == null || levelPack.packName != "Random Songs")
             {
                 Logger.log.Info("Hiding RandomSongButton");
@@ -79,7 +79,7 @@ namespace RandomSongPlayer
 
             try
             {
-                MenuButton menuButton = new MenuButton("Random Song Player", "Download a random song from Beat Saver and play it", () => { PlayRandomSongAsync(); });
+                MenuButton menuButton = new MenuButton("Random Song Player", "Download a random song from Beat Saver and play it", async () => { await PlayRandomSongAsync(); });
                 MenuButtons.instance.RegisterButton(menuButton);
             }
             catch (Exception e)
@@ -119,7 +119,7 @@ namespace RandomSongPlayer
             {
                 Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
                 CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
-                callback(installedMap);
+                callback?.Invoke(installedMap);
             };
             Loader.OnLevelPacksRefreshed += OnLevelPacksRefreshed;
             Loader.Instance.RefreshSongs(false);
