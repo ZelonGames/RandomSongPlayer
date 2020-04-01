@@ -53,7 +53,7 @@ namespace RandomSongPlayer
                 Beatmap mapData = await Plugin.beatsaverClient.Key(randomKey);
                 if (!(mapData is null))
                 {
-                    Logger.log.Info("Found map " + randomKey + ": " + mapData.Metadata.SongAuthorName + " - " + mapData.Metadata.LevelAuthorName + " by " + mapData.Metadata.LevelAuthorName);
+                    Logger.log.Info("Found map " + randomKey + ": " + mapData.Metadata.SongAuthorName + " - " + mapData.Metadata.SongName + " by " + mapData.Metadata.LevelAuthorName);
                 }
                 return mapData;
             }
