@@ -5,11 +5,12 @@
   "gameVersion": "1.8.0",
   "id": "RandomSongPlayer",
   "name": "RandomSongPlayer",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "features": [],
   "dependsOn": {
-    "SongCore": "^2.9.0",
-    "BeatSaberMarkupLanguage": "^1.1.5",
-    "BS Utils": "^1.4.3"
+    "SongCore": "^2.9.1",
+    "BeatSaberMarkupLanguage": "^1.2.2",
+    "BS Utils": "^1.4.7",
+    "BeatSaverSharp": "^1.5.2"
   }
 }

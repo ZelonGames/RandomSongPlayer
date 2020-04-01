@@ -17,6 +17,7 @@ using SongCore.Data;
 using RandomSongPlayer.UI;
 using BeatSaberMarkupLanguage.MenuButtons;
 using BS_Utils;
+using BeatSaverSharp;
 
 namespace RandomSongPlayer
 {
@@ -24,7 +25,7 @@ namespace RandomSongPlayer
     public class Plugin
     {
         internal static System.Random rnd = new System.Random();
-        internal static HttpClient client = new HttpClient();
+        internal static BeatSaver beatsaverClient = new BeatSaver(new HttpOptions(){ApplicationName = "Random Song Player",Version = new Version(1, 1, 1)});
         internal static PluginConfig config;
         internal static SeperateSongFolder randomSongsFolder;
         public static Plugin instance;
@@ -37,14 +38,12 @@ namespace RandomSongPlayer
         public void Init(IPALogger logger, IPA.Config.Config cfgProvider, PluginMetadata pluginMetadata)
         {
             instance = this;
-
             Logger.log = logger;
 
             Sprite coverImage = SongCore.Utilities.Utils.LoadSpriteFromResources("RandomSongPlayer.Assets.new-rst-logo.png");
-
             randomSongsFolder = Collections.AddSeperateSongFolder("Random Songs", Environment.CurrentDirectory + "/" + Setup.RandomSongsFolder, FolderLevelPack.NewPack, coverImage);
 
-            config = cfgProvider.Generated<PluginConfig>(); 
+            config = cfgProvider.Generated<PluginConfig>();
         }
 
         [OnStart]
@@ -105,24 +104,24 @@ namespace RandomSongPlayer
         /** If the callback is null, call the callback with the randomSongId, otherwise select the newly downloaded song */
         public async Task DownloadRandomSongAsync(RSPDownloadedCallback callback)
         {
-            await RandomSongGenerator.GenerateRandomKey(null);
-            String path;
-            MapInstaller.InstallMap(RandomSongGenerator.mapData, out path);
-
-
-            path = Path.GetFullPath(path);
-            Logger.log.Info("Chosen Random Song: " + path);
-
-            // Have fun with this.
-            Action OnLevelPacksRefreshed = null;
-            OnLevelPacksRefreshed = () =>
+            Beatmap mapData = await RandomSongGenerator.GenerateRandomKey();
+            if (!(mapData is null))
             {
-                Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
-                CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
-                callback?.Invoke(installedMap);
-            };
-            Loader.OnLevelPacksRefreshed += OnLevelPacksRefreshed;
-            Loader.Instance.RefreshSongs(false);
+                string path = await MapInstaller.InstallMap(mapData);
+                Logger.log.Info("Chosen Random Song: " + path);
+
+                path = Path.GetFullPath(path);
+                // Have fun with this.
+                Action OnLevelPacksRefreshed = null;
+                OnLevelPacksRefreshed = () =>
+                {
+                    Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
+                    CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
+                    callback?.Invoke(installedMap);
+                };
+                Loader.OnLevelPacksRefreshed += OnLevelPacksRefreshed;
+                Loader.Instance.RefreshSongs(false);
+            }
         }
 
         public async Task SelectRandomSongAsync()

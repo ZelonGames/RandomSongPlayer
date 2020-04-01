@@ -7,40 +7,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BeatSaverSharp;
 
 namespace RandomSongPlayer
 {
     internal static class MapInstaller
     {
-        internal static void InstallMap(MapData mapData, out string path)
+        internal static async Task<string> InstallMap(Beatmap mapData)
         {
-            string mapDirectoryName = GetMapDirectoryName(mapData);
-            path = mapDirectoryName;
-            if (Directory.Exists(mapDirectoryName))
-                return;
+            string mapPath = GetMapDirectoryName(mapData);
 
-            DownloadMap(mapData);
-
-            if (File.Exists(mapDirectoryName + ".zip"))
-                UnzipFile(mapDirectoryName);
+            byte[] zipData = await DownloadMap(mapData);
+            if (!(zipData is null))
+            {
+                if (await ExtractZip(mapData, zipData, mapPath))
+                {
+                    return mapPath;
+                }
+            }
+            return null;
         }
 
-        private static void DownloadMap(MapData mapData)
+        private static async Task<byte[]> DownloadMap(Beatmap mapData)
         {
             try
             {
-                WebClient wc = new WebClient();
-                wc.DownloadFile("https://beatsaver.com/api/download/key/" + mapData.key, GetMapDirectoryName(mapData) + ".zip");
+                byte[] zipData = await mapData.DownloadZip();
+                return zipData;
             }
-            catch (WebException we)
+            catch (Exception ex)
             {
-                Console.WriteLine(we.ToString());
+                Logger.log.Critical("Unable to download map zip: " + ex.ToString());
+                return null;
             }
+            
         }
 
-        private static string GetMapDirectoryName(MapData mapData)
+        private static string GetMapDirectoryName(Beatmap mapData)
         {
-            return Setup.RandomSongsFolder + "/" + mapData.key;
+            return Setup.RandomSongsFolder + "/" + mapData.Key + " (" + mapData.Metadata.SongName + " - " + mapData.Metadata.LevelAuthorName + ")";
         }
 
         private static void UnzipFile(string fileName)
@@ -49,9 +54,34 @@ namespace RandomSongPlayer
             File.Delete(fileName + ".zip");
         }
 
-        private static bool CanDownloadMap(string key, string directory, string fileName = null)
+        private static async Task<bool> ExtractZip(Beatmap beatmap, byte[] zipData, string mapPath)
         {
-            return !Directory.Exists(directory + fileName);
+            Stream zipStream = new MemoryStream(zipData);
+            try
+            {
+                ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+                string basePath = beatmap.Key + " (" + beatmap.Metadata.SongName + " - " + beatmap.Metadata.LevelAuthorName + ")";
+                if (!Directory.Exists(mapPath))
+                    Directory.CreateDirectory(mapPath);
+                await Task.Run(() =>
+                {
+                    foreach (var entry in archive.Entries)
+                    {
+                        var entryPath = Path.Combine(mapPath, entry.Name); // Name instead of FullName for better security and because song zips don't have nested directories anyway
+                        if (!File.Exists(entryPath)) // Either we're overwriting or there's no existing file
+                            entry.ExtractToFile(entryPath);
+                    }
+                }).ConfigureAwait(false);
+                archive.Dispose();
+                zipStream.Close();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Critical("Unable to extract map zip: " + ex.ToString());
+                zipStream.Close();
+                return false;
+            }
         }
     }
 }
