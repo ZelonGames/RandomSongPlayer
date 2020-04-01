@@ -18,6 +18,7 @@ using RandomSongPlayer.UI;
 using BeatSaberMarkupLanguage.MenuButtons;
 using BS_Utils;
 using BeatSaverSharp;
+using System.Reflection;
 
 namespace RandomSongPlayer
 {
@@ -25,12 +26,13 @@ namespace RandomSongPlayer
     public class Plugin
     {
         internal static System.Random rnd = new System.Random();
-        internal static BeatSaver beatsaverClient = new BeatSaver(new HttpOptions(){ApplicationName = "Random Song Player",Version = new Version(1, 1, 1)});
+        internal static BeatSaver beatsaverClient = new BeatSaver(new HttpOptions() { ApplicationName = Assembly.GetExecutingAssembly().GetName().Name, Version = Assembly.GetExecutingAssembly().GetName().Version });
         internal static PluginConfig config;
         internal static SeperateSongFolder randomSongsFolder;
         public static Plugin instance;
 
-        public static IAnnotatedBeatmapLevelCollection Playlist {
+        public static IAnnotatedBeatmapLevelCollection Playlist
+        {
             get { return randomSongsFolder.LevelPack; }
         }
 
@@ -92,7 +94,7 @@ namespace RandomSongPlayer
         {
             Logger.log.Debug("OnApplicationQuit");
         }
-                
+
         public void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
         }
