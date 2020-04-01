@@ -15,7 +15,7 @@ namespace RandomSongPlayer.Filter
         public static int FilterPageNumber { get; private set; }
         public static string RandomKey { get; private set; }
 
-        internal static async Task SetFilterPageNumbers(HttpClient client, int minValue, string dataTypeName)
+        /*internal static async Task SetFilterPageNumbers(HttpClient client, int minValue, string dataTypeName)
         {
             #region Get FilterData
 
@@ -154,6 +154,6 @@ namespace RandomSongPlayer.Filter
             var ratingMaps = JsonConvert.DeserializeObject<Latest>(ratingString);
 
             RandomKey = ratingMaps.docs[rnd.Next(0, ratingMaps.docs.Count)].key;
-        }
+        }*/
     }
 }

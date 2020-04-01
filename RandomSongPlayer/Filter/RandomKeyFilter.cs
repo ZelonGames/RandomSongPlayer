@@ -20,12 +20,12 @@ namespace RandomSongPlayer.Filter
             this.Rating = rating;
         }
 
-        internal bool MatchingFilters(Difficulty difficulty, MapData mapData)
+        /*internal bool MatchingFilters(Difficulty difficulty, MapData mapData)
         {
             bool npsCondition = NPS.HasValue ? MapTools.GetNotesPerSecond(mapData.metadata.bpm, difficulty.duration, difficulty.notes) >= NPS.Value : true;
             bool ratingCondition = Rating.HasValue ? mapData.stats.rating >= Rating.Value * 100 : true;
 
             return UsingFilters ? npsCondition && ratingCondition : true;
-        }
+        }*/
     }
 }

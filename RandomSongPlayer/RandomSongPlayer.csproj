@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BeatSaverSharp">
+      <HintPath>..\..\..\..\Steam\steamapps\common\Beat Saber\Libs\BeatSaverSharp.dll</HintPath>
+    </Reference>
     <Reference Include="BSML, Version=1.1.5.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\BSML.dll</HintPath>
@@ -108,14 +111,6 @@
     <Compile Include="Filter\FilterHelper.cs" />
     <Compile Include="Filter\RandomKeyFilter.cs" />
     <Compile Include="LevelHelper.cs" />
-    <Compile Include="MapData\Document.cs" />
-    <Compile Include="MapData\Latest.cs" />
-    <Compile Include="MapData\MapData.cs" />
-    <Compile Include="MapData\MapMetaData\Characteristics\Characteristic.cs" />
-    <Compile Include="MapData\MapMetaData\Characteristics\CharacteristicsDifficulty.cs" />
-    <Compile Include="MapData\MapMetaData\MapDifficulties.cs" />
-    <Compile Include="MapData\MapMetaData\MapMetaData.cs" />
-    <Compile Include="MapData\Stats.cs" />
     <Compile Include="MapInstaller.cs" />
     <Compile Include="MapTools.cs" />
     <Compile Include="Plugin.cs" />
@@ -137,9 +132,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\random-song-tourney-icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\rst-logo.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\new-rst-logo.png" />
