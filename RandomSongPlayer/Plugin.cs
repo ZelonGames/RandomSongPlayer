@@ -116,10 +116,6 @@ namespace RandomSongPlayer
                 OnLevelPacksRefreshed = () =>
                 {
                     Loader.OnLevelPacksRefreshed -= OnLevelPacksRefreshed;
-                    foreach (var entry in randomSongsFolder.Levels)
-                    {
-                        Logger.log.Info(entry.Key.ToString() + " | " + entry.Value.ToString()); 
-                    }
                     CustomPreviewBeatmapLevel installedMap = randomSongsFolder.Levels[path];
                     callback?.Invoke(installedMap);
                 };
