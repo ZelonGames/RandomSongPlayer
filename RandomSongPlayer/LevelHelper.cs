@@ -53,7 +53,7 @@ namespace RandomSongPlayer
                 playerSettings.colorSchemesSettings.overrideDefaultColors ? playerSettings.colorSchemesSettings.GetSelectedColorScheme() : null,
                 gamePlayModifiers,
                 playerSettings.playerSpecificSettings,
-                playerSettings.practiceSettings, "Exit", playerSettings.playerSpecificSettings.sfxVolume > 0, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
+                playerSettings.practiceSettings, "Exit", false, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
                 {
                     bool newHighScore = false;
 
