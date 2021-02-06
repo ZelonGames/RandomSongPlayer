@@ -20,7 +20,8 @@ namespace RandomSongPlayer
         private ResultsViewController resultsViewController;
         private bool newHighScore = false;
 
-        protected override void DidActivate(bool firstActivation, ActivationType activationType)
+
+        protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
         {
             if (firstActivation)
             {
@@ -30,10 +31,11 @@ namespace RandomSongPlayer
                 resultsViewController.continueButtonPressedEvent += OnContinueButtonPressed;
                 resultsViewController.restartButtonPressedEvent += OnRestartButtonPressed;
 
-                if (activationType == ActivationType.AddedToHierarchy && resultsViewController != null)
+                if (addedToHierarchy && resultsViewController != null)
                     ProvideInitialViewControllers(resultsViewController, null, null);
             }
         }
+
 
         public void Show(CustomPreviewBeatmapLevel customPreviewBeatmapLevel, BeatmapDifficulty difficulty, IDifficultyBeatmap levelDifficulty, LevelCompletionResults results, bool newHighScore)
         {
@@ -66,5 +68,6 @@ namespace RandomSongPlayer
             Hide();
             LevelHelper.PlayLevel(beatmap, difficulty);
         }
+
     }
 }

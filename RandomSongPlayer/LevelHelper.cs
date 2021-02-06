@@ -48,12 +48,21 @@ namespace RandomSongPlayer
             IBeatmapLevel level = beatmapLevel;
             BeatmapCharacteristicSO characteristics = beatmap.previewDifficultyBeatmapSets[0].beatmapCharacteristic;
             IDifficultyBeatmap levelDifficulty = BeatmapLevelDataExtensions.GetDifficultyBeatmap(level.beatmapLevelData, characteristics, difficulty);
-            menuSceneSetupData.StartStandardLevel(levelDifficulty,
+            
+            
+
+            menuSceneSetupData.StartStandardLevel(
+                "Random",
+                levelDifficulty,
                 playerSettings.overrideEnvironmentSettings.overrideEnvironments ? playerSettings.overrideEnvironmentSettings : null,
                 playerSettings.colorSchemesSettings.overrideDefaultColors ? playerSettings.colorSchemesSettings.GetSelectedColorScheme() : null,
                 gamePlayModifiers,
                 playerSettings.playerSpecificSettings,
-                playerSettings.practiceSettings, "Exit", false, () => { }, (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
+                playerSettings.practiceSettings,
+                "Exit",
+                false,
+                () => { },
+                (StandardLevelScenesTransitionSetupDataSO sceneTransition, LevelCompletionResults results) =>
                 {
                     bool newHighScore = false;
 
@@ -121,7 +130,18 @@ namespace RandomSongPlayer
             newHighScore = playerLevelStatsData.highScore > prevHighScore;
 
             var platFormLeaderBoardsModel = freePlayCoordinator.GetPrivateField<PlatformLeaderboardsModel>("_platformLeaderboardsModel");
-            platFormLeaderBoardsModel.UploadScore(levelDifficulty, results.rawScore, results.modifiedScore, results.fullCombo, results.goodCutsCount, results.badCutsCount, results.missedCount, results.maxCombo, results.gameplayModifiers);//AddScoreFromComletionResults(levelDifficulty, levelCompletionResults);
+
+            platFormLeaderBoardsModel.UploadScore(
+              levelDifficulty,
+              results.rawScore,
+              results.modifiedScore,
+              results.fullCombo,
+              results.goodCutsCount,
+              results.badCutsCount,
+              results.missedCount,
+              results.maxCombo,
+              results.energy,
+              results.gameplayModifiers);
         }
     }
 }
