@@ -26,7 +26,7 @@ namespace RandomSongPlayer
     public class Plugin
     {
         internal static System.Random rnd = new System.Random();
-        internal static BeatSaver beatsaverClient = new BeatSaver(new HttpOptions() { ApplicationName = Assembly.GetExecutingAssembly().GetName().Name, Version = Assembly.GetExecutingAssembly().GetName().Version });
+        internal static BeatSaver beatsaverClient = new BeatSaver(new HttpOptions(Assembly.GetExecutingAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Version));
         internal static PluginConfig config;
         internal static SeperateSongFolder randomSongsFolder;
         public static Plugin instance;
@@ -52,8 +52,9 @@ namespace RandomSongPlayer
         public void OnApplicationStart()
         {
             Logger.log.Info("OnApplicationStart");
-            BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh += BSEvents_menuSceneLoadedFresh;
+            BSEvents.earlyMenuSceneLoadedFresh += BSEvents_earlyMenuSceneLoadedFresh; ;
         }
+
 
         private void _levelFilteringNavController_didSelectPackEvent(LevelFilteringNavigationController levelFilteringNavigationController, IAnnotatedBeatmapLevelCollection iAnnotatedBeatmapLevelCollection, GameObject gameObject, BeatmapCharacteristicSO beatmapCharacteristicSO)
         {
@@ -71,8 +72,9 @@ namespace RandomSongPlayer
             }
         }
 
-        private void BSEvents_menuSceneLoadedFresh()
+        private void BSEvents_earlyMenuSceneLoadedFresh(ScenesTransitionSetupDataSO obj)
         {
+            
             LevelFilteringNavigationController levelFiltering = Resources.FindObjectsOfTypeAll<LevelFilteringNavigationController>().First();
             levelFiltering.didSelectAnnotatedBeatmapLevelCollectionEvent -= _levelFilteringNavController_didSelectPackEvent;
             levelFiltering.didSelectAnnotatedBeatmapLevelCollectionEvent += _levelFilteringNavController_didSelectPackEvent;

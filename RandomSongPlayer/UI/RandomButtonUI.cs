@@ -20,9 +20,6 @@ namespace RandomSongPlayer.UI
         internal void Setup(Plugin parentPlugin)
         {
             plugin = parentPlugin;
-            /*Assembly testAssembly = Assembly.GetExecutingAssembly();
-            if (testAssembly == null) Logger.log.Info("Test Assembly ist null.");
-            else Logger.log.Info("Test Assembly ist nicht null");*/
             levelCollection = Resources.FindObjectsOfTypeAll<LevelSelectionNavigationController>().First();
             BSMLParser.instance.Parse(BeatSaberMarkupLanguage.Utilities.GetResourceContent(Assembly.GetExecutingAssembly(), "RandomSongPlayer.UI.RandomButton.bsml"), levelCollection.gameObject, this);
         }

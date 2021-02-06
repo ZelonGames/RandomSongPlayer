@@ -24,7 +24,7 @@ namespace RandomSongPlayer
             Logger.log.Info("Searching for random beatmap");
 
             // Look for the latest key on the Beatsaver API
-            Page latestMaps = await Plugin.beatsaverClient.Latest();
+            Page<PagedRequestOptions> latestMaps = await Plugin.beatsaverClient.Latest();
             string latestKey = latestMaps.Docs[0].Key;
             int keyAsDecimal = int.Parse(latestKey, System.Globalization.NumberStyles.HexNumber);
 

@@ -32,7 +32,7 @@ namespace RandomSongPlayer
         {
             try
             {
-                byte[] zipData = await mapData.DownloadZip();
+                byte[] zipData = await mapData.ZipBytes();
                 return zipData;
             }
             catch (Exception ex)
